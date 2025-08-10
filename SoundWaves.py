@@ -55,7 +55,7 @@ def calculateAmplitude(sources:list[tuple] = [(-3,0),(3,0)],width:float|int=10,r
             
             pixelStrength = amplitudeFromPhase(*phases) * strengthPerPoint * 255
             
-            tempPix.append((pixelStrength,pixelStrength,pixelStrength,255-pixelStrength))
+            tempPix.append((pixelStrength,pixelStrength,pixelStrength))
             x += increment
         
         pix.append(tempPix)
