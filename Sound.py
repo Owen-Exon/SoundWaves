@@ -4,8 +4,10 @@ import math
 import imageio.v2 as imageio
 
 soundPoints = [
-    (3,0),
-    (-3,0)
+    (-3,-3),
+    (-3,3),
+    (3,-3),
+    (3,3)
 ]
 
 def distance(p1:tuple,p2:tuple):
@@ -13,8 +15,8 @@ def distance(p1:tuple,p2:tuple):
     dY = p2[1] - p1[1]
     return math.sqrt(dX**2 + dY**2)
 
-resolution = 256
-width = 10
+resolution = 1080
+width = 15
 center = (0,0)
 wavelength = 2
 frames = 30

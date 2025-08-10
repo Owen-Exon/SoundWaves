@@ -3,8 +3,10 @@ import numpy as np
 import math
 
 soundPoints = [
-    (3,0),
-    (-3,0)
+    (-3,-3),
+    (-3,3),
+    (3,-3),
+    (3,3)
 ]
 
 def distance(p1:tuple,p2:tuple):
@@ -12,8 +14,18 @@ def distance(p1:tuple,p2:tuple):
     dY = p2[1] - p1[1]
     return math.sqrt(dX**2 + dY**2)
 
-resolution = 256
-width = 10
+def amplitudeFromPhase(*phases:float):
+    c = 0
+    s = 0
+    for phase in phases:
+        c += math.cos(phase)
+        s += math.sin(phase)
+    
+    return math.sqrt(c**2 + s**2)
+    
+
+resolution = 1080
+width = 15
 center = (0,0)
 wavelength = 2
 
@@ -26,13 +38,13 @@ pix = []
 while (initY-y) < width:
     tempPix = []
     while (x-initX) < width:
-        # strength = 0
-        phases =[]
+        phases = []
         for emitter in soundPoints:
             pointDistance = distance((x,y),(emitter))
             phases.append(2 * math.pi * (pointDistance % wavelength) / wavelength)
-            
-        pixelStrength = abs(2*strengthPerPoint*math.cos((phases[1]-phases[0])/2)) * 255
+        
+        pixelStrength = amplitudeFromPhase(*phases) * strengthPerPoint * 255
+        
         tempPix.append((pixelStrength,pixelStrength,pixelStrength))
         x += increment
     
