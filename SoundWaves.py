@@ -36,7 +36,7 @@ def saveVideo(fileName,frames,frameRate):
 
 
 
-def calculateAmplitude(sources:list[tuple] = [(-3,0),(3,0)],width:float|int=10,resolution:int=256,sourceWavelength:float|int=2):
+def calculateAmplitude(sources:list[tuple] = [(-3,0),(3,0)],width:float|int=10,resolution:int=256,sourceWavelength:float|int=2,showSources:bool = True):
     
     center = (0,0)
     strengthPerPoint = 1/len(sources)
@@ -49,13 +49,19 @@ def calculateAmplitude(sources:list[tuple] = [(-3,0),(3,0)],width:float|int=10,r
         tempPix = []
         while (x-initX) < width:
             phases = []
+            isEmitter = False
             for emitter in sources:
                 pointDistance = distance((x,y),(emitter))
+                if pointDistance < 0.05 and showSources:
+                    isEmitter = True
                 phases.append(2 * math.pi * (pointDistance % sourceWavelength) / sourceWavelength)
             
-            pixelStrength = amplitudeFromPhase(*phases) * strengthPerPoint * 255
-            
-            tempPix.append((pixelStrength,pixelStrength,pixelStrength))
+            if isEmitter:
+                tempPix.append((255,0,0))
+            else:
+                pixelStrength = amplitudeFromPhase(*phases) * strengthPerPoint * 255
+                tempPix.append((pixelStrength,pixelStrength,pixelStrength))
+                
             x += increment
         
         pix.append(tempPix)
@@ -67,7 +73,7 @@ def calculateAmplitude(sources:list[tuple] = [(-3,0),(3,0)],width:float|int=10,r
 
 
 
-def calculateVideo(sources:list[tuple] = [(-3,0),(3,0)],width:float|int=10,resolution:int=256,sourceWavelength:float|int=2,numFrames:int=30,colourWave=False):
+def calculateVideo(sources:list[tuple] = [(-3,0),(3,0)],width:float|int=10,resolution:int=256,sourceWavelength:float|int=2,numFrames:int=30,colourWave:bool=False,showSources:bool=True):
     
     center = (0,0)
     timeIncrement = (2*math.pi)/(numFrames+1)
@@ -85,19 +91,25 @@ def calculateVideo(sources:list[tuple] = [(-3,0),(3,0)],width:float|int=10,resol
             tempPix = []
             while (x-initX) < width:
                 strength = 0
+                isEmitter = False
                 for emitter in sources:
                     pointDistance = distance((x,y),(emitter))
+                    if pointDistance < 0.05 and showSources:
+                        isEmitter = True
                     strength += math.sin( (2 * math.pi * (pointDistance % sourceWavelength) / sourceWavelength) - (frame*timeIncrement) ) * strengthPerPoint
-                if colourWave:
-                    if strength >= 0:
-                        pixStrength = strength * 255
-                        tempPix.append((0,pixStrength,pixStrength))
-                    else:
-                        pixStrength = -strength * 255
-                        tempPix.append((pixStrength,pixStrength/2,0))
+                if isEmitter:
+                    tempPix.append((255,255,255))
                 else:
-                    pixelStrength = (strength + 1) * 127.5
-                    tempPix.append((pixelStrength,pixelStrength,pixelStrength))
+                    if colourWave:
+                        if strength >= 0:
+                            pixStrength = strength * 255
+                            tempPix.append((0,pixStrength,pixStrength))
+                        else:
+                            pixStrength = -strength * 255
+                            tempPix.append((pixStrength,pixStrength/2,0))
+                    else:
+                        pixelStrength = (strength + 1) * 127.5
+                        tempPix.append((pixelStrength,pixelStrength,pixelStrength))
                 
                 x += increment
             
@@ -113,11 +125,11 @@ def calculateVideo(sources:list[tuple] = [(-3,0),(3,0)],width:float|int=10,resol
 
 
 
-def calculateSounds(sources:list[tuple] = [(-3,0),(3,0)],width:float|int=10,resolution:int=256,sourceWavelength:float|int=2,numFrames:int=30,framerate:int=15,colourWave:bool=False):
+def calculateSounds(sources:list[tuple] = [(-3,0),(3,0)],width:float|int=10,resolution:int=256,sourceWavelength:float|int=2,numFrames:int=30,framerate:int=15,colourWave:bool=False,showSources:bool=True):
     
-    ampFrame = calculateAmplitude(sources,width,resolution,sourceWavelength)
+    ampFrame = calculateAmplitude(sources,width,resolution,sourceWavelength,showSources)
     saveImage("Amplitude.png",ampFrame)
-    videoFrames =calculateVideo(sources,width,resolution,sourceWavelength,numFrames,colourWave)
+    videoFrames =calculateVideo(sources,width,resolution,sourceWavelength,numFrames,colourWave,showSources)
     saveVideo("Sound.gif",videoFrames,framerate)
     
     print("All Done")
