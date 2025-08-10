@@ -4,7 +4,7 @@ import math
 import imageio.v2 as imageio
 
 soundPoints = [
-    (3,3),
+    (3,0),
     (-3,0)
 ]
 
