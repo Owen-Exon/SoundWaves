@@ -20,17 +20,29 @@ def amplitudeFromPhase(*phases:float):
     return math.sqrt(c**2 + s**2)
 
 
+def saveImage(fileName,pixels:list):
+    array = np.array(pixels,dtype=np.uint8)
+
+    newImage = Image.fromarray(array)
+    newImage.save(fileName)
+
+def saveVideo(fileName,frames,frameRate):
+    frames = [np.array(img,dtype=np.uint8) for img in frames]
+
+    if fileName[-3:] == "gif":
+        imageio.mimsave(fileName, frames, fps=frameRate,loop=0)
+    else:
+        imageio.mimsave(fileName, frames, fps=frameRate)
+
+
 
 def calculateAmplitude(sources:list[tuple] = [(-3,0),(3,0)],width:float|int=10,resolution:int=256,sourceWavelength:float|int=2):
-    print("Amplitude Pre-calc")
     
     center = (0,0)
     strengthPerPoint = 1/len(sources)
     increment = width / resolution
     initX , initY = center[0]-width/2 , center[1]+width/2
     x , y = initX , initY
-
-    print("Amplitude Frame")    
     
     pix = []
     while (initY-y) < width:
@@ -43,7 +55,7 @@ def calculateAmplitude(sources:list[tuple] = [(-3,0),(3,0)],width:float|int=10,r
             
             pixelStrength = amplitudeFromPhase(*phases) * strengthPerPoint * 255
             
-            tempPix.append((pixelStrength,pixelStrength,pixelStrength))
+            tempPix.append((pixelStrength,pixelStrength,pixelStrength,255-pixelStrength))
             x += increment
         
         pix.append(tempPix)
@@ -51,19 +63,11 @@ def calculateAmplitude(sources:list[tuple] = [(-3,0),(3,0)],width:float|int=10,r
         x = initX
         y -= increment
 
-    print("Amplitude Image")
-    
-    array = np.array(pix,dtype=np.uint8)
-
-    newImage = Image.fromarray(array)
-    newImage.save(f"Amplitude.png")
-    
-    print("Amplitude Done") 
+    return pix
 
 
 
-def calculateVideo(sources:list[tuple] = [(-3,0),(3,0)],width:float|int=10,resolution:int=256,sourceWavelength:float|int=2,numFrames:int=30,framerate:int=15,colourWave=False):
-    print("Pre-calc")
+def calculateVideo(sources:list[tuple] = [(-3,0),(3,0)],width:float|int=10,resolution:int=256,sourceWavelength:float|int=2,numFrames:int=30,colourWave=False):
     
     center = (0,0)
     timeIncrement = (2*math.pi)/(numFrames+1)
@@ -72,8 +76,7 @@ def calculateVideo(sources:list[tuple] = [(-3,0),(3,0)],width:float|int=10,resol
     initX , initY = center[0]-width/2 , center[1]+width/2
     x , y = initX , initY
     
-    print("Video frames")
-    images = []
+    frames = []
 
     for frame in range(numFrames):
         x , y = initX , initY
@@ -91,7 +94,7 @@ def calculateVideo(sources:list[tuple] = [(-3,0),(3,0)],width:float|int=10,resol
                         tempPix.append((0,pixStrength,pixStrength))
                     else:
                         pixStrength = -strength * 255
-                        tempPix.append((pixStrength,pixStrength,0))
+                        tempPix.append((pixStrength,pixStrength/2,0))
                 else:
                     pixelStrength = (strength + 1) * 127.5
                     tempPix.append((pixelStrength,pixelStrength,pixelStrength))
@@ -103,21 +106,18 @@ def calculateVideo(sources:list[tuple] = [(-3,0),(3,0)],width:float|int=10,resol
             x = initX
             y -= increment
             
-        images.append(pix)
+        frames.append(pix)
         print(f"Frame {frame} done")
-    
-    print("Video Creation")
-        
-    frames = [np.array(img,dtype=np.uint8) for img in images]
-    imageio.mimsave("Output.gif", frames, fps=framerate,loop=0)
-    
-    print("Video Done")
+
+    return frames
 
 
 
 def calculateSounds(sources:list[tuple] = [(-3,0),(3,0)],width:float|int=10,resolution:int=256,sourceWavelength:float|int=2,numFrames:int=30,framerate:int=15,colourWave:bool=False):
     
-    calculateAmplitude(sources,width,resolution,sourceWavelength)
-    calculateVideo(sources,width,resolution,sourceWavelength,numFrames,framerate,colourWave)
+    ampFrame = calculateAmplitude(sources,width,resolution,sourceWavelength)
+    saveImage("Amplitude.png",ampFrame)
+    videoFrames =calculateVideo(sources,width,resolution,sourceWavelength,numFrames,colourWave)
+    saveVideo("Sound.gif",videoFrames,framerate)
     
     print("All Done")
