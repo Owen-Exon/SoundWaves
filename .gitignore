@@ -1,5 +1,6 @@
-Amplitude.png
-Sound.gif
+*.png
+*.gif
+*.mp4
 *test*.py
 
 
